@@ -2,7 +2,7 @@
 
 ## `cache.js`
 
-Run `zip -r cache.zip cache.js node_modules package.json`.
+Run `yarn zip-cache`.
 
 Function name: `lsa-cg-scraper-course-cache`
 Runtime: Node.js 16.x
@@ -19,7 +19,7 @@ Add EventBridge trigger with a `cron(0 10 * * ? *)` cron schedule (runs at 10AM 
 
 ## `main.js`
 
-Run `zip -r main.zip main.js node_modules package.json`.
+Run `yarn zip-main`.
 
 Function name: `lsa-cg-scraper`
 Runtime: Node.js 16.x
@@ -29,7 +29,7 @@ Execution role: `S3-FullAccess`.
 
 Upload a .zip file: `main.zip`.
 Change the handler from `index.handler` to `main.handler`.
-Set the timeout to 15 minutes.
+Set the timeout to 10 minutes.
 Set the memory to 2560MB.
 
 <!-- Add EventBridge trigger with a `cron(0 10 * * ? *)` cron schedule (runs at 10AM UTC or 6AM ET). -->

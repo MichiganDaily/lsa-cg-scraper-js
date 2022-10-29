@@ -6,7 +6,8 @@
   "author": "Eric Lau",
   "license": "MIT",
   "scripts": {
-    "zip-cache": "zip -r cache.zip cache.js node_modules package.json"
+    "zip-cache": "zip -r cache.zip cache.js node_modules package.json",
+    "zip-main": "zip -r main.zip main.js node_modules package.json"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.199.0",
