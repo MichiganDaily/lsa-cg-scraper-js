@@ -10,6 +10,7 @@
     "zip-main": "zip -r main.zip main.js node_modules package.json"
   },
   "dependencies": {
+    "@aws-sdk/client-cloudfront": "^3.199.0",
     "@aws-sdk/client-s3": "^3.199.0",
     "async": "^3.2.4",
     "aws-xray-sdk": "^3.3.8",

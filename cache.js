@@ -1,7 +1,13 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  CloudFrontClient,
+  CreateInvalidationCommand,
+} from "@aws-sdk/client-cloudfront";
 import { JSDOM } from "jsdom";
 import fetch from "node-fetch";
 import { csvFormat } from "d3-dsv";
+import { eachLimit } from "async";
+import { createHash } from "node:crypto";
 
 /**
  * Retrieve a set of department slugs (e.g. EECS, ENGLISH, POLSCI, etc.) from the course guide depending on a term and type.
@@ -44,7 +50,8 @@ const getCourses = async (departments, term, type) => {
 
   const map = new Map();
 
-  for await (const department of departments) {
+  const NUM_OPERATIONS = 15;
+  await eachLimit(departments, NUM_OPERATIONS, async (department) => {
     url.searchParams.set("department", department);
     const response = await fetch(url.href);
     const html = await response.text();
@@ -77,15 +84,12 @@ const getCourses = async (departments, term, type) => {
         map.set(slug, suffix);
       }
     });
-  }
+  });
 
   return map;
 };
 
 export const handler = async () => {
-  const region = "us-east-2";
-  const client = new S3Client({ region });
-
   const term = "w_23_2420";
   const ug = await getDepartments(term, "ug");
   const gr = await getDepartments(term, "gr");
@@ -102,13 +106,37 @@ export const handler = async () => {
     }))
   );
 
-  const bucketParams = {
-    Bucket: "data.michigandaily.com",
-    Key: "course-tracker/winter-2023/cache-courses.csv",
-    Body: body,
-    ContentType: "text/csv",
-    CacheControl: "max-age=86400",
-  };
+  const etag = `W/"${createHash("md5").update(body).digest("hex")}"`;
 
-  await client.send(new PutObjectCommand(bucketParams));
+  const res = await fetch(
+    "https://data.michigandaily.com/course-tracker/winter-2023/cache-courses.csv"
+  );
+  if (res.headers.get("etag") !== etag) {
+    const bucketParams = {
+      Bucket: "data.michigandaily.com",
+      Key: "course-tracker/winter-2023/cache-courses.csv",
+      Body: body,
+      ContentType: "text/csv",
+      CacheControl: "max-age=86400",
+    };
+
+    const region = "us-east-2";
+    const client = new S3Client({ region });
+    await client.send(new PutObjectCommand(bucketParams));
+
+    const cloudfront = new CloudFrontClient({ region });
+    const invalidate = new CreateInvalidationCommand({
+      DistributionId: "E1FI50AV220BXR",
+      InvalidationBatch: {
+        CallerReference: new Date().toISOString(),
+        Paths: {
+          Quantity: 1,
+          Items: ["/course-tracker/winter-2023/cache-courses.csv"],
+        },
+      },
+    });
+    await cloudfront.send(invalidate);
+  }
 };
+
+handler();
