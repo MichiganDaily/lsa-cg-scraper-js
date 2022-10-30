@@ -37,8 +37,8 @@ export const handler = async () => {
       Key: d.Key,
     }));
 
-    const NUM_OPERATIONS = 15;
-    eachLimit(stubs, NUM_OPERATIONS, async ({ Key }) => {
+    const NUM_OPERATIONS = 20;
+    await eachLimit(stubs, NUM_OPERATIONS, async ({ Key }) => {
       const filename = Key.substring(Key.lastIndexOf("/") + 1, Key.length);
       const [department, number] = filename.split("-");
 
