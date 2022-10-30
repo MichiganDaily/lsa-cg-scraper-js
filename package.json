@@ -6,12 +6,14 @@
   "author": "Eric Lau",
   "license": "MIT",
   "scripts": {
-    "zip-cache": "zip -r cache.zip cache.js node_modules package.json",
-    "zip-main": "zip -r main.zip main.js node_modules package.json"
+    "zip-cache": "zip -r zip/cache.zip cache.js node_modules package.json",
+    "zip-main": "zip -r zip/main.zip main.js node_modules package.json",
+    "zip-merge": "zip -r zip/merge.zip merge.js node_modules package.json"
   },
   "dependencies": {
     "@aws-sdk/client-cloudfront": "^3.199.0",
     "@aws-sdk/client-s3": "^3.199.0",
+    "@aws-sdk/credential-providers": "^3.199.0",
     "async": "^3.2.4",
     "aws-xray-sdk": "^3.3.8",
     "d3-array": "^3.2.0",
