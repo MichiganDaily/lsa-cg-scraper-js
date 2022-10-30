@@ -129,17 +129,17 @@ export const handler = async () => {
     (d) => d.Course
   ).map((d) => d[1]);
 
-  const bucketParams = {
-    Bucket: "data.michigandaily.com",
-    Key: "course-tracker/winter-2023/overview.csv",
-    Body: csvFormat(primary),
-    ContentType: "text/csv",
-    CacheControl: "max-age=3600",
-  };
-
   const region = "us-east-2";
   const client = new S3Client({ region });
-  await client.send(new PutObjectCommand(bucketParams));
+  await client.send(
+    new PutObjectCommand({
+      Bucket: "data.michigandaily.com",
+      Key: "course-tracker/winter-2023/overview.csv",
+      Body: csvFormat(primary),
+      ContentType: "text/csv",
+      CacheControl: "max-age=3600",
+    })
+  );
 
   for await (const [course, values] of group(
     sections,
@@ -148,13 +148,12 @@ export const handler = async () => {
     console.log("Writing", course);
     const csv = csvFormat(
       values.map((v) => ({
-        Time: v.Time,
         Section: v.Section,
         Mode: v["Instruction Mode"],
         Number: v["Class No"],
         Status: v["Enroll Stat"],
         "Open Seats": v["Open Seats"],
-        "Wait List": v["Wait List"],
+        "Wait List": v["Wait List"] === "-" ? 0 : +v["Wait List"],
       }))
     );
 
@@ -171,3 +170,5 @@ export const handler = async () => {
     );
   }
 };
+
+handler();
