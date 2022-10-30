@@ -30,6 +30,6 @@ Execution role: `S3-FullAccess`.
 Upload a .zip file: `main.zip`.
 Change the handler from `index.handler` to `main.handler`.
 Set the timeout to 10 minutes.
-Set the memory to 2560MB.
+Set the memory to 4096MB.
 
 <!-- Add EventBridge trigger with a `cron(0 10 * * ? *)` cron schedule (runs at 10AM UTC or 6AM ET). -->

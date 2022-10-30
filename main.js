@@ -2,7 +2,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { JSDOM } from "jsdom";
 import fetch from "node-fetch";
 import { autoType, csvFormat, csvParse } from "d3-dsv";
-import { rollups, sum, index } from "d3-array";
+import { rollups, sum, index, group } from "d3-array";
 import { mapLimit } from "async";
 
 const dateToNearestHour = () => {
@@ -32,6 +32,9 @@ const getSections = async (courses, term) => {
     console.log(name);
 
     const response = await fetch(url.href);
+    if (!response.ok) {
+      return [];
+    }
     const html = await response.text();
     const { body } = new JSDOM(html).window.document;
 
@@ -48,7 +51,7 @@ const getSections = async (courses, term) => {
     });
   };
 
-  const NUM_OPERATIONS = 10;
+  const NUM_OPERATIONS = 15;
   const sections = await mapLimit(
     courses.entries(),
     NUM_OPERATIONS,
@@ -137,6 +140,34 @@ export const handler = async () => {
   const region = "us-east-2";
   const client = new S3Client({ region });
   await client.send(new PutObjectCommand(bucketParams));
-};
 
-handler();
+  for await (const [course, values] of group(
+    sections,
+    (d) => d.Course
+  ).entries()) {
+    console.log("Writing", course);
+    const csv = csvFormat(
+      values.map((v) => ({
+        Time: v.Time,
+        Section: v.Section,
+        Mode: v["Instruction Mode"],
+        Number: v["Class No"],
+        Status: v["Enroll Stat"],
+        "Open Seats": v["Open Seats"],
+        "Wait List": v["Wait List"],
+      }))
+    );
+
+    const department = course.slice(0, -3).toLowerCase();
+    const slug = department + "-" + course.slice(-3);
+    await client.send(
+      new PutObjectCommand({
+        Bucket: "data.michigandaily.com",
+        Key: `course-tracker/winter-2023/courses/${department}/${slug}-${values[0].Time}.csv`,
+        Body: csv,
+        ContentType: "text/csv",
+        CacheControl: "max-age=3600",
+      })
+    );
+  }
+};
