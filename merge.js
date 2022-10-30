@@ -2,31 +2,16 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectsCommand,
+  ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
 import { fromIni } from "@aws-sdk/credential-providers";
 import { csvFormat, csvParse } from "d3-dsv";
 import fetch from "node-fetch";
 import { eachLimit } from "async";
 
-const chunk = (arr, size) => {
-  return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => {
-    return arr.slice(i * size, i * size + size);
-  });
-};
-
 export const handler = async () => {
-  const overviewRes = await fetch(
-    "https://data.michigandaily.com/course-tracker/winter-2023/overview.csv"
-  );
-  const overviewText = await overviewRes.text();
-  const overview = csvParse(overviewText);
-  const courses = overview.map((d) => ({
-    department: d.department,
-    slug: d.department.toLowerCase() + "-" + d.number,
-  }));
-
-  const suffix = "2022-10-30T03:00:00.000Z";
-  const prevSuffix = "2022-10-30T02:00:00.000Z";
+  const bucket = "data.michigandaily.com";
+  const prefix = "course-tracker/winter-2023/courses";
 
   const region = "us-east-2";
   const client = new S3Client({
@@ -34,73 +19,75 @@ export const handler = async () => {
     credentials: fromIni({ profile: "sink" }),
   });
 
-  const filesToDelete = Array();
+  let listOptions = {
+    Bucket: bucket,
+    Prefix: prefix,
+    StartAfter: undefined,
+  };
 
-  const bucket = "data.michigandaily.com";
-  const prefix = "course-tracker/winter-2023/courses";
+  let lister = new ListObjectsV2Command(listOptions);
+  let list = await client.send(lister);
 
-  const NUM_OPERATIONS = 20;
-  await eachLimit(courses, NUM_OPERATIONS, async ({ department, slug }) => {
-    const dept = department.toLowerCase();
-    let stubRes = await fetch(
-      `https://${bucket}/${prefix}/${dept}/${slug}-${suffix}.csv`
+  while (list.KeyCount > 0) {
+    const regex = new RegExp(
+      /-\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z.csv/
     );
 
-    if (!stubRes.ok) {
-      stubRes = await fetch(
-        `https://${bucket}/${prefix}/${dept}/${slug}-${prevSuffix}.csv`
+    const stubs = list.Contents.filter((d) => regex.test(d.Key)).map((d) => ({
+      Key: d.Key,
+    }));
+
+    const NUM_OPERATIONS = 15;
+    eachLimit(stubs, NUM_OPERATIONS, async ({ Key }) => {
+      const filename = Key.substring(Key.lastIndexOf("/") + 1, Key.length);
+      const [department, number] = filename.split("-");
+
+      console.log(department + number);
+
+      const stubRes = await fetch(`https://${bucket}/${Key}`);
+      const stubText = await stubRes.text();
+      const stub = csvParse(stubText);
+
+      let csv = stub;
+
+      const mainRes = await fetch(
+        `https://${bucket}/${prefix}/${department}/${department}-${number}.csv`
       );
+      if (mainRes.ok) {
+        const mainText = await mainRes.text();
+        const main = csvParse(mainText);
 
-      if (!stubRes.ok) {
-        return;
-      } else {
-        filesToDelete.push(`${prefix}/${dept}/${slug}-${prevSuffix}.csv`);
+        if (main.at(-1).Time === stub.at(0).Time) {
+          return;
+        } else {
+          csv = [...main, ...stub];
+        }
       }
-    } else {
-      filesToDelete.push(`${prefix}/${dept}/${slug}-${suffix}.csv`);
-    }
 
-    const stubText = await stubRes.text();
-    const stub = csvParse(stubText);
+      await client.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: `${prefix}/${department}/${department}-${number}.csv`,
+          Body: csvFormat(csv),
+          ContentType: "text/csv",
+          CacheControl: "max-age=3600",
+        })
+      );
+    });
 
-    let csv = stub;
-
-    const mainRes = await fetch(
-      `https://${bucket}/${prefix}/${dept}/${slug}.csv`
-    );
-    if (mainRes.ok) {
-      const mainText = await mainRes.text();
-      const main = csvParse(mainText);
-      console.log("Appending to the main data file", slug);
-      csv = [...main, ...stub];
-    }
-
-    await client.send(
-      new PutObjectCommand({
-        Bucket: bucket,
-        Key: `${prefix}/${dept}/${slug}.csv`,
-        Body: csvFormat(csv),
-        ContentType: "text/csv",
-        CacheControl: "max-age=3600",
-      })
-    );
-  });
-
-  if (filesToDelete.length > 0) {
-    const chunks = chunk(
-      filesToDelete.map((f) => ({ Key: f })),
-      1000
-    );
-
-    for await (const chunk of chunks) {
-      const remove = new DeleteObjectsCommand({
+    if (stubs.length > 0) {
+      const remover = new DeleteObjectsCommand({
         Bucket: bucket,
         Delete: {
-          Objects: chunk,
+          Objects: stubs,
         },
       });
-      await client.send(remove);
+      await client.send(remover);
     }
+
+    const lastKey = list.Contents.at(-1).Key;
+    lister = new ListObjectsV2Command({ ...listOptions, StartAfter: lastKey });
+    list = await client.send(lister);
   }
 };
 

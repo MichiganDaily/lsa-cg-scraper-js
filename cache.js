@@ -50,7 +50,7 @@ const getCourses = async (departments, term, type) => {
 
   const map = new Map();
 
-  const NUM_OPERATIONS = 15;
+  const NUM_OPERATIONS = 20;
   await eachLimit(departments, NUM_OPERATIONS, async (department) => {
     url.searchParams.set("department", department);
     const response = await fetch(url.href);
@@ -108,13 +108,14 @@ export const handler = async () => {
 
   const etag = `W/"${createHash("md5").update(body).digest("hex")}"`;
 
-  const res = await fetch(
-    "https://data.michigandaily.com/course-tracker/winter-2023/cache-courses.csv"
-  );
+  const bucket = "data.michigandaily.com";
+  const key = "course-tracker/winter-2023/cache-courses.csv";
+
+  const res = await fetch(`https://${bucket}/${key}`);
   if (res.headers.get("etag") !== etag) {
     const bucketParams = {
-      Bucket: "data.michigandaily.com",
-      Key: "course-tracker/winter-2023/cache-courses.csv",
+      Bucket: bucket,
+      Key: key,
       Body: body,
       ContentType: "text/csv",
       CacheControl: "max-age=86400",
@@ -131,7 +132,7 @@ export const handler = async () => {
         CallerReference: new Date().toISOString(),
         Paths: {
           Quantity: 1,
-          Items: ["/course-tracker/winter-2023/cache-courses.csv"],
+          Items: ["/" + key],
         },
       },
     });

@@ -5,6 +5,9 @@ import { autoType, csvFormat, csvParse } from "d3-dsv";
 import { rollups, sum, index, group } from "d3-array";
 import { mapLimit } from "async";
 
+const bucket = "data.michigandaily.com";
+const prefix = "course-tracker/winter-2023";
+
 const dateToNearestHour = () => {
   const rounder = 60 * 60 * 1000; // number of milliseconds in an hour
   const now = new Date();
@@ -51,7 +54,7 @@ const getSections = async (courses, term) => {
     });
   };
 
-  const NUM_OPERATIONS = 15;
+  const NUM_OPERATIONS = 20;
   const sections = await mapLimit(
     courses.entries(),
     NUM_OPERATIONS,
@@ -62,9 +65,7 @@ const getSections = async (courses, term) => {
 };
 
 const getCourses = async () => {
-  const res = await fetch(
-    "https://data.michigandaily.com/course-tracker/winter-2023/cache-courses.csv"
-  );
+  const res = await fetch(`https://${bucket}/${prefix}/cache-courses.csv`);
   if (res.ok) {
     const cache = await res.text();
     return new Map(
@@ -76,9 +77,7 @@ const getCourses = async () => {
 };
 
 const getOverview = async () => {
-  const res = await fetch(
-    "https://data.michigandaily.com/course-tracker/winter-2023/overview.csv"
-  );
+  const res = await fetch(`https://${bucket}/${prefix}/overview.csv`);
   if (res.ok) {
     const overview = await res.text();
     return index(csvParse(overview, autoType), (d) => d.department + d.number);
@@ -133,8 +132,8 @@ export const handler = async () => {
   const client = new S3Client({ region });
   await client.send(
     new PutObjectCommand({
-      Bucket: "data.michigandaily.com",
-      Key: "course-tracker/winter-2023/overview.csv",
+      Bucket: bucket,
+      Key: `${prefix}/overview.csv`,
       Body: csvFormat(primary),
       ContentType: "text/csv",
       CacheControl: "max-age=3600",
@@ -162,8 +161,8 @@ export const handler = async () => {
     const slug = department + "-" + course.slice(-3);
     await client.send(
       new PutObjectCommand({
-        Bucket: "data.michigandaily.com",
-        Key: `course-tracker/winter-2023/courses/${department}/${slug}-${values[0].Time}.csv`,
+        Bucket: bucket,
+        Key: `${prefix}/courses/${department}/${slug}-${values[0].Time}.csv`,
         Body: csv,
         ContentType: "text/csv",
         CacheControl: "max-age=3600",

@@ -8,7 +8,8 @@
   "scripts": {
     "zip-cache": "zip -r zip/cache.zip cache.js node_modules package.json",
     "zip-main": "zip -r zip/main.zip main.js node_modules package.json",
-    "zip-merge": "zip -r zip/merge.zip merge.js node_modules package.json"
+    "zip-merge": "zip -r zip/merge.zip merge.js node_modules package.json",
+    "zip": "yarn zip-cache && yarn zip-main && yarn zip-merge"
   },
   "dependencies": {
     "@aws-sdk/client-cloudfront": "^3.199.0",
