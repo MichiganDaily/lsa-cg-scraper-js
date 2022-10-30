@@ -148,6 +148,7 @@ export const handler = async () => {
     console.log("Writing", course);
     const csv = csvFormat(
       values.map((v) => ({
+        Time: v.Time,
         Section: v.Section,
         Mode: v["Instruction Mode"],
         Number: v["Class No"],
