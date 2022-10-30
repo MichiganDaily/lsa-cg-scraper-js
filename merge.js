@@ -4,7 +4,7 @@ import {
   DeleteObjectsCommand,
   ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
-import { fromIni } from "@aws-sdk/credential-providers";
+// import { fromIni } from "@aws-sdk/credential-providers";
 import { csvFormat, csvParse } from "d3-dsv";
 import fetch from "node-fetch";
 import { eachLimit } from "async";
@@ -16,7 +16,7 @@ export const handler = async () => {
   const region = "us-east-2";
   const client = new S3Client({
     region,
-    credentials: fromIni({ profile: "sink" }),
+    // credentials: fromIni({ profile: "sink" }),
   });
 
   let listOptions = {
