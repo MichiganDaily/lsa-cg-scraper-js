@@ -162,7 +162,7 @@ export const handler = async () => {
     await client.send(
       new PutObjectCommand({
         Bucket: bucket,
-        Key: `${prefix}/courses/${department}/${slug}-${values[0].Time}.csv`,
+        Key: `${prefix}/courses/stubs/${slug}-${values[0].Time}.csv`,
         Body: csv,
         ContentType: "text/csv",
         CacheControl: "max-age=3600",

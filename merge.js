@@ -11,7 +11,8 @@ import { eachLimit } from "async";
 
 export const handler = async () => {
   const bucket = "data.michigandaily.com";
-  const prefix = "course-tracker/winter-2023/courses";
+  const courses = "course-tracker/winter-2023/courses";
+  const prefix = `${courses}/stubs`;
 
   const region = "us-east-2";
   const client = new S3Client({
@@ -51,7 +52,7 @@ export const handler = async () => {
       let csv = stub;
 
       const mainRes = await fetch(
-        `https://${bucket}/${prefix}/${department}/${department}-${number}.csv`
+        `https://${bucket}/${courses}/${department}/${department}-${number}.csv`
       );
       if (mainRes.ok) {
         const mainText = await mainRes.text();
@@ -67,7 +68,7 @@ export const handler = async () => {
       await client.send(
         new PutObjectCommand({
           Bucket: bucket,
-          Key: `${prefix}/${department}/${department}-${number}.csv`,
+          Key: `${courses}/${department}/${department}-${number}.csv`,
           Body: csvFormat(csv),
           ContentType: "text/csv",
           CacheControl: "max-age=3600",
