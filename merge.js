@@ -47,8 +47,6 @@ export const handler = async () => {
       const filename = Key.substring(Key.lastIndexOf("/") + 1, Key.length);
       const [department, number] = filename.split("-");
 
-      console.log(department + number);
-
       const stubRes = await fetch(`https://${bucket}/${Key}`);
       const stubText = await stubRes.text();
       const stub = csvParse(stubText);

@@ -67,8 +67,6 @@ const getCourses = async (departments, term, type) => {
 
       const slug = dept + number;
 
-      console.log(slug);
-
       const path = course.getAttribute("data-url");
       const url = new URL(path, "https://www.lsa.umich.edu/cg/");
       const suffix = url.searchParams.get("content").split(slug).at(-1);

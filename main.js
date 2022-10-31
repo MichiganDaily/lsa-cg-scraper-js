@@ -32,7 +32,6 @@ const getSections = async (courses, term) => {
     const url = new URL("https://www.lsa.umich.edu/cg/cg_detail.aspx");
     url.searchParams.set("content", prefix + name + suffix);
     url.searchParams.set("termArray", term);
-    console.log(name);
 
     const response = await fetch(url.href);
     if (!response.ok) {
@@ -90,8 +89,6 @@ export const handler = async () => {
   const term = "w_23_2420";
 
   const courses = await getCourses();
-
-  console.log(`Crawling ${courses.size} courses`);
   const sections = await getSections(courses, term);
 
   const overview = await getOverview();
