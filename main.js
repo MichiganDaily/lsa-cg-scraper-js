@@ -140,11 +140,12 @@ export const handler = async () => {
     })
   );
 
+  let stubs = 0;
+
   for await (const [course, values] of group(
     sections,
     (d) => d.Course
   ).entries()) {
-    console.log("Writing", course);
     const csv = csvFormat(
       values.map((v) => ({
         Time: v.Time,
@@ -157,6 +158,7 @@ export const handler = async () => {
       }))
     );
 
+    stubs++;
     const department = course.slice(0, -3).toLowerCase();
     const slug = department + "-" + course.slice(-3);
     await client.send(
@@ -169,6 +171,8 @@ export const handler = async () => {
       })
     );
   }
+
+  console.log("PUT: wrote", stubs, "stubs");
 };
 
 handler();

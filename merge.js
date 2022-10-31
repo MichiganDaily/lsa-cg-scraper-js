@@ -10,6 +10,10 @@ import fetch from "node-fetch";
 import { eachLimit } from "async";
 
 export const handler = async () => {
+  let lists = 1;
+  let deletions = 0;
+  let merges = 0;
+
   const bucket = "data.michigandaily.com";
   const courses = "course-tracker/winter-2023/courses";
   const prefix = `${courses}/stubs`;
@@ -74,6 +78,7 @@ export const handler = async () => {
           CacheControl: "max-age=3600",
         })
       );
+      merges++;
     });
 
     if (stubs.length > 0) {
@@ -84,12 +89,18 @@ export const handler = async () => {
         },
       });
       await client.send(remover);
+      deletions++;
     }
 
     const lastKey = list.Contents.at(-1).Key;
     lister = new ListObjectsV2Command({ ...listOptions, StartAfter: lastKey });
     list = await client.send(lister);
+    lists++;
   }
+
+  console.log("LIST: listed", lists, "pages");
+  console.log("DELETE: deleted", deletions, "stubs");
+  console.log("PUT: merged", merges, "stubs");
 };
 
 handler();
