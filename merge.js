@@ -10,8 +10,13 @@ import fetch from "node-fetch";
 import { eachLimit } from "async";
 
 export const handler = async () => {
+  let lists = 1;
+  let deletions = 0;
+  let merges = 0;
+
   const bucket = "data.michigandaily.com";
-  const prefix = "course-tracker/winter-2023/courses";
+  const courses = "course-tracker/winter-2023/courses";
+  const prefix = `${courses}/stubs`;
 
   const region = "us-east-2";
   const client = new S3Client({
@@ -51,7 +56,7 @@ export const handler = async () => {
       let csv = stub;
 
       const mainRes = await fetch(
-        `https://${bucket}/${prefix}/${department}/${department}-${number}.csv`
+        `https://${bucket}/${courses}/${department}/${department}-${number}.csv`
       );
       if (mainRes.ok) {
         const mainText = await mainRes.text();
@@ -67,12 +72,13 @@ export const handler = async () => {
       await client.send(
         new PutObjectCommand({
           Bucket: bucket,
-          Key: `${prefix}/${department}/${department}-${number}.csv`,
+          Key: `${courses}/${department}/${department}-${number}.csv`,
           Body: csvFormat(csv),
           ContentType: "text/csv",
           CacheControl: "max-age=3600",
         })
       );
+      merges++;
     });
 
     if (stubs.length > 0) {
@@ -83,12 +89,18 @@ export const handler = async () => {
         },
       });
       await client.send(remover);
+      deletions++;
     }
 
     const lastKey = list.Contents.at(-1).Key;
     lister = new ListObjectsV2Command({ ...listOptions, StartAfter: lastKey });
     list = await client.send(lister);
+    lists++;
   }
+
+  console.log("LIST: listed", lists, "pages");
+  console.log("DELETE: deleted", deletions, "stubs");
+  console.log("PUT: merged", merges, "stubs");
 };
 
 handler();
