@@ -53,7 +53,7 @@ const getSections = async (courses, term) => {
     });
   };
 
-  const NUM_OPERATIONS = 20;
+  const NUM_OPERATIONS = 25;
   const sections = await mapLimit(
     courses.entries(),
     NUM_OPERATIONS,
@@ -161,7 +161,7 @@ export const handler = async () => {
     await client.send(
       new PutObjectCommand({
         Bucket: bucket,
-        Key: `${prefix}/courses/stubs/${slug}-${values[0].Time}.csv`,
+        Key: `${prefix}/stubs/${slug}-${values[0].Time}.csv`,
         Body: csv,
         ContentType: "text/csv",
         CacheControl: "max-age=3600",

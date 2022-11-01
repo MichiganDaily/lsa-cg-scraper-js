@@ -15,8 +15,9 @@ export const handler = async () => {
   let merges = 0;
 
   const bucket = "data.michigandaily.com";
-  const courses = "course-tracker/winter-2023/courses";
-  const prefix = `${courses}/stubs`;
+  const winter = "course-tracker/winter-2023";
+  const courses = `${winter}/courses`;
+  const prefix = `${winter}/stubs`;
 
   const region = "us-east-2";
   const client = new S3Client({
@@ -42,7 +43,7 @@ export const handler = async () => {
       Key: d.Key,
     }));
 
-    const NUM_OPERATIONS = 20;
+    const NUM_OPERATIONS = 25;
     await eachLimit(stubs, NUM_OPERATIONS, async ({ Key }) => {
       const filename = Key.substring(Key.lastIndexOf("/") + 1, Key.length);
       const [department, number] = filename.split("-");

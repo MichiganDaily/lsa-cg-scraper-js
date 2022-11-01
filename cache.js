@@ -50,7 +50,7 @@ const getCourses = async (departments, term, type) => {
 
   const map = new Map();
 
-  const NUM_OPERATIONS = 20;
+  const NUM_OPERATIONS = 25;
   await eachLimit(departments, NUM_OPERATIONS, async (department) => {
     url.searchParams.set("department", department);
     const response = await fetch(url.href);
