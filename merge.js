@@ -4,7 +4,11 @@ import {
   DeleteObjectsCommand,
   ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
-import { fromIni } from "@aws-sdk/credential-providers";
+import {
+  CloudFrontClient,
+  CreateInvalidationCommand,
+} from "@aws-sdk/client-cloudfront";
+// import { fromIni } from "@aws-sdk/credential-providers";
 import { csvFormat, csvParse } from "d3-dsv";
 import { group } from "d3-array";
 import fetch from "node-fetch";
@@ -19,8 +23,10 @@ export const handler = async () => {
   const region = "us-east-2";
   const client = new S3Client({
     region,
-    credentials: fromIni({ profile: "sink" }),
+    // credentials: fromIni({ profile: "sink" }),
   });
+
+  const cloudfront = new CloudFrontClient({ region });
 
   const lister = new ListObjectsV2Command({ Bucket: bucket, Prefix: `${winter}/stubs/stub-` });
   const list = await client.send(lister);
@@ -81,6 +87,18 @@ export const handler = async () => {
       );
       puts++;
     })
+
+    const invalidate = new CreateInvalidationCommand({
+      DistributionId: "E1FI50AV220BXR",
+      InvalidationBatch: {
+        CallerReference: new Date().toISOString(),
+        Paths: {
+          Quantity: 1,
+          Items: ["/" + winter + "/courses/*"],
+        },
+      },
+    });
+    await cloudfront.send(invalidate);
   }
 
   if (stubs.length > 0) {
