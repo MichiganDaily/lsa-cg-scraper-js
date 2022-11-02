@@ -2,7 +2,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { JSDOM } from "jsdom";
 import fetch from "node-fetch";
 import { autoType, csvFormat, csvParse } from "d3-dsv";
-import { rollups, sum, index, group } from "d3-array";
+import { rollups, sum, index } from "d3-array";
 import { mapLimit } from "async";
 
 const bucket = "data.michigandaily.com";
@@ -137,39 +137,25 @@ export const handler = async () => {
     })
   );
 
-  let stubs = 0;
+  const stub = sections.map(d => ({
+    Course: d.Course,
+    Time: d.Time,
+    Section: d.Section,
+    Mode: d["Instruction Mode"],
+    Number: d["Class No"],
+    Status: d["Enroll Stat"],
+    "Open Seats": d["Open Seats"],
+    "Wait List": d["Wait List"] === "-" ? 0 : +d["Wait List"]
+  }));
 
-  for await (const [course, values] of group(
-    sections,
-    (d) => d.Course
-  ).entries()) {
-    const csv = csvFormat(
-      values.map((v) => ({
-        Time: v.Time,
-        Section: v.Section,
-        Mode: v["Instruction Mode"],
-        Number: v["Class No"],
-        Status: v["Enroll Stat"],
-        "Open Seats": v["Open Seats"],
-        "Wait List": v["Wait List"] === "-" ? 0 : +v["Wait List"],
-      }))
-    );
-
-    stubs++;
-    const department = course.slice(0, -3).toLowerCase();
-    const slug = department + "-" + course.slice(-3);
-    await client.send(
-      new PutObjectCommand({
-        Bucket: bucket,
-        Key: `${prefix}/stubs/${slug}-${values[0].Time}.csv`,
-        Body: csv,
-        ContentType: "text/csv",
-        CacheControl: "max-age=3600",
-      })
-    );
-  }
-
-  console.log("PUT: wrote", stubs, "stubs");
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: `${prefix}/stubs/stub-${dateToNearestHour()}.csv`,
+      Body: csvFormat(stub),
+      ContentType: "text/csv"
+    })
+  );
 };
 
 handler();
