@@ -110,7 +110,7 @@ export const handler = async () => {
   const key = "course-tracker/winter-2023/cache-courses.csv";
 
   const res = await fetch(`https://${bucket}/${key}`);
-  if (res.headers.get("etag") !== etag) {
+  if (!res.ok || res.headers.get("etag") !== etag) {
     const bucketParams = {
       Bucket: bucket,
       Key: key,
