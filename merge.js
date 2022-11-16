@@ -82,7 +82,7 @@ export const handler = async () => {
           Key: `${winter}/courses/${department}/${department}-${number}.csv`,
           Body: csvFormat(csv),
           ContentType: "text/csv",
-          CacheControl: "max-age=3600"
+          CacheControl: "s-maxage=3500"
         })
       );
       puts++;

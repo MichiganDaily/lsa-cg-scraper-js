@@ -133,7 +133,7 @@ export const handler = async () => {
       Key: `${prefix}/overview.csv`,
       Body: csvFormat(primary),
       ContentType: "text/csv",
-      CacheControl: "max-age=3600",
+      CacheControl: "s-maxage=3500",
     })
   );
 

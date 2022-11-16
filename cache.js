@@ -116,7 +116,7 @@ export const handler = async () => {
       Key: key,
       Body: body,
       ContentType: "text/csv",
-      CacheControl: "max-age=86400",
+      CacheControl: "s-maxage=86300",
     };
 
     const region = "us-east-2";
