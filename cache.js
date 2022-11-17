@@ -39,7 +39,7 @@ const getDepartments = async (term, type) => {
  * @param {Set<string>} departments - a set of department slugs
  * @param {string} term - the term we should retrieve departments from
  * @param {('ug'|'gr')} type - 'ug' if the departments should be for undergraduate classes, 'gr' if the departments should be for graduate classes
- * @returns {Promise<Map<string, string>} a mapping from a course slug (e.g., EECS 485) to partial content query parameter suffix.
+ * @returns {Promise<Map<string, {suffix: string, title: string}>} a mapping from a course slug (e.g., EECS 485) to partial content query parameter suffix and a title.
  */
 const getCourses = async (departments, term, type) => {
   const url = new URL("https://www.lsa.umich.edu/cg/cg_results.aspx");
@@ -59,7 +59,7 @@ const getCourses = async (departments, term, type) => {
 
     const courses = body.querySelectorAll(".row.ClassRow.ClassHyperlink");
     courses.forEach((course) => {
-      const [dept, number] = course
+      const [dept, number, _, title] = course
         .querySelector(".row.toppadding_main.bottompadding_interior font")
         .textContent.trim()
         .split("\n")
@@ -79,7 +79,7 @@ const getCourses = async (departments, term, type) => {
       // Since each course can be specified from just one page, we don't need to store multiple
       // suffixes for each course slug.
       if (!map.has(slug)) {
-        map.set(slug, suffix);
+        map.set(slug, { suffix, title });
       }
     });
   });
@@ -100,7 +100,8 @@ export const handler = async () => {
   const body = csvFormat(
     Array.from(courses).map((course) => ({
       course: course[0],
-      suffix: course[1],
+      suffix: course[1].suffix,
+      title: course[1].title
     }))
   );
 
