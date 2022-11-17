@@ -94,7 +94,7 @@ export const handler = async () => {
         CallerReference: new Date().toISOString(),
         Paths: {
           Quantity: 1,
-          Items: ["/" + winter + "/courses/*"],
+          Items: ["/" + winter + "/*"],
         },
       },
     });
