@@ -16,9 +16,9 @@ const dateToNearestHour = () => {
 
 /**
  *
- * @param {Map<string,string>} courses
+ * @param {Map<string,{suffix: string, title: string}>} courses
  * @param {string} term
- * @returns {Promise<Array<{Course: string, Time: string, Section: string, 'Instruction Mode': string, 'Class No': string, 'Enroll Stat': string, 'Open Seats': string, 'Wait List': string}>>}
+ * @returns {Promise<Array<{Course: string, Time: string, Section: string, 'Instruction Mode': string, 'Class No': string, 'Enroll Stat': string, 'Open Seats': string, 'Wait List': string, title: string}>>}
  */
 const getSections = async (courses, term) => {
   // The prefix for the content query parameter comes from the term.
@@ -28,7 +28,7 @@ const getSections = async (courses, term) => {
   // The prefix "2420" comes from the term slug "w_23_2420"
   const prefix = term.split("_").at(-1);
 
-  const getCourseSections = async ([name, suffix]) => {
+  const getCourseSections = async ([name, { suffix, title }]) => {
     const url = new URL("https://www.lsa.umich.edu/cg/cg_detail.aspx");
     url.searchParams.set("content", prefix + name + suffix);
     url.searchParams.set("termArray", term);
@@ -43,7 +43,7 @@ const getSections = async (courses, term) => {
     const rows = body.querySelectorAll(".row.clsschedulerow");
 
     return Array.from(rows).map((row) => {
-      const section = { Course: name, Time: dateToNearestHour() };
+      const section = { Course: name, Time: dateToNearestHour(), title };
       Array.from(row.querySelectorAll(".row .col-md-1")).forEach((column) => {
         let [key, value] = column.textContent.trim().split(":");
         value = value.trim();
@@ -68,7 +68,7 @@ const getCourses = async () => {
   if (res.ok) {
     const cache = await res.text();
     return new Map(
-      csvParse(cache).map((course) => [course.course, course.suffix])
+      csvParse(cache).map(({ course, suffix, title }) => [course, { suffix, title }])
     );
   } else {
     return null;
@@ -114,6 +114,7 @@ export const handler = async () => {
       return {
         department: course.slice(0, -3),
         number,
+        title: v[0].title,
         capacity,
         available,
         percent_available,
