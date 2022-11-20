@@ -105,6 +105,10 @@ export const handler = async () => {
     }))
   );
 
+  if (body.length === 0) {
+    return;
+  }
+
   const etag = `W/"${createHash("md5").update(body).digest("hex")}"`;
 
   const bucket = "data.michigandaily.com";
