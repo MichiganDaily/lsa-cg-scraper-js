@@ -105,7 +105,7 @@ export const handler = async () => {
     }))
   );
 
-  if (body.length === 0) {
+  if (body === undefined || body.length === 0) {
     return;
   }
 
