@@ -106,8 +106,9 @@ export const handler = async () => {
       const available = sum(v, (d) => +d["Open Seats"]);
       let capacity = available;
       if (overview !== null && overview.has(course)) {
-        if (overview.get(course).capacity > capacity) {
-          capacity = overview.get(course).capacity;
+        const potential = Number(overview.get(course).capacity);
+        if (potential > capacity) {
+          capacity = potential;
         }
       }
       const percent_available = available / capacity;
