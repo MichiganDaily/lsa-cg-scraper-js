@@ -27,3 +27,5 @@ You should keep track of monitoring logs and your billing. If there are function
 ## Addendum
 
 We've encountered two times when some course capacities in the overview file became much smaller than the actual capacity. For example, if EECS 485 has around 400 seats as its maximum capacity, a function invocation would lower the capacity to 10 for some reason. This is likely an issue with the main function and how it deals with updating capacity. I've yet to figure out why this happens, but we have a `reconcile.js` script which remedieis the issue by recreating the overview file with the correct capacity number. This should be run locally with `node reconcile.js` and takes several minutes to run.
+
+See [`lsa-cg-scraper`](https://github.com/MichiganDaily/lsa-cg-scraper) for a Python version with a slightly different architecture. Instead of having 3 separate scripts, the Python version only had one script. It ran into some bottleneck issues when trying to merge data. We had to host the Python version on an EC2 instance because of the 15 minute Lambda time constraint.
