@@ -23,3 +23,7 @@ Run `yarn zip` to create ZIP files for each script that can be uploaded to AWS.
 - For `merge.js`, change the Lambda function handler from `index.handler` to `merge.handler`. Add an EventBridge trigger that runs hourly. It should run a few minutes after the main function runs, at least 15 to 30 minutes after. This function is set to have 1600 MB of memory, 512 MB of ephemeral storage and a 15 minute timeout.
 
 You should keep track of monitoring logs and your billing. If there are function invocation failures, it may be because of time constraints or memory shortage. The merge function is most susceptible to running out of storage of time since each course file will become larger, and will require more time to read in each successive merge.
+
+## Addendum
+
+We've encountered two times when some course capacities in the overview file became much smaller than the actual capacity. For example, if EECS 485 has around 400 seats as its maximum capacity, a function invocation would lower the capacity to 10 for some reason. This is likely an issue with the main function and how it deals with updating capacity. I've yet to figure out why this happens, but we have a `reconcile.js` script which remedieis the issue by recreating the overview file with the correct capacity number. This should be run locally with `node reconcile.js` and takes several minutes to run.
