@@ -36,6 +36,8 @@ const getDepartments = async (term, type) => {
 
 /**
  * Given the departments of a term and type specification, return some information about all of the courses from those departments.
+ * A single department URL will look something like the following:
+ * https://www.lsa.umich.edu/cg/cg_results.aspx?termArray=w_23_2420&cgtype=ug&allsections=true&show=1000&department=AAS
  * @param {Set<string>} departments - a set of department slugs
  * @param {string} term - the term we should retrieve departments from
  * @param {('ug'|'gr')} type - 'ug' if the departments should be for undergraduate classes, 'gr' if the departments should be for graduate classes
