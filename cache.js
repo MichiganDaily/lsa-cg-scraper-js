@@ -113,7 +113,7 @@ export const handler = async () => {
 
   const etag = `W/"${createHash("md5").update(body).digest("hex")}"`;
 
-  const bucket = "data.michigandaily.com";
+  const bucket = "stash.michigandaily.com";
   const key = "course-tracker/winter-2023/cache-courses.csv";
 
   const res = await fetch(`https://${bucket}/${key}`);

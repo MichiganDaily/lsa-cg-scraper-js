@@ -10,7 +10,7 @@ const csv = async (url) => {
 }
 
 const main = async () => {
-  const bucket = "data.michigandaily.com";
+  const bucket = "stash.michigandaily.com";
   const prefix = "course-tracker/winter-2023";
 
   const cache = await csv(`https://${bucket}/${prefix}/cache-courses.csv`);

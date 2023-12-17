@@ -17,7 +17,7 @@ import { eachLimit } from "async";
 export const handler = async () => {
   let puts = 0;
 
-  const bucket = "data.michigandaily.com";
+  const bucket = "stash.michigandaily.com";
   const winter = "course-tracker/winter-2023";
 
   const region = "us-east-2";

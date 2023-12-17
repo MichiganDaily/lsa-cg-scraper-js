@@ -5,7 +5,7 @@ import { autoType, csvFormat, csvParse } from "d3-dsv";
 import { rollups, sum, index } from "d3-array";
 import { mapLimit } from "async";
 
-const bucket = "data.michigandaily.com";
+const bucket = "stash.michigandaily.com";
 const prefix = "course-tracker/winter-2023";
 
 const dateToNearestHour = () => {
