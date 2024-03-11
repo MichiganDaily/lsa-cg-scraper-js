@@ -31,5 +31,5 @@ We've encountered two times when some course capacities in the overview file bec
 See [`lsa-cg-scraper`](https://github.com/MichiganDaily/lsa-cg-scraper) for a Python version with a slightly different architecture. Instead of having 3 separate scripts, the Python version only had one script. It ran into some bottleneck issues when trying to merge data. We had to host the Python version on an EC2 instance because of the 15 minute Lambda time constraint.
 
 ```sh
- aws s3 cp s3://stash.michigandaily.com/course-tracker/winter-2023/ course-tracker --recursive --profile sin
+ aws s3 cp s3://stash.michigandaily.com/course-tracker/winter-2023/ course-tracker --recursive --profile sink
 ```
